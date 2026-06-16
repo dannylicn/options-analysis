@@ -2,8 +2,9 @@ services:
   backend:
     build: ./backend
     env_file: .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    networks:
+      - default
+      - db-net
     restart: unless-stopped
 
   frontend:
@@ -13,3 +14,8 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+
+networks:
+  db-net:
+    external: true
+    name: options-data_default
