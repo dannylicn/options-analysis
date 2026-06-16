@@ -1,4 +1,4 @@
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Area, AreaChart, ResponsiveContainer } from 'recharts'
+import { XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, Area, AreaChart, ResponsiveContainer } from 'recharts'
 import type { ExpirySummary } from '../types'
 
 interface Props { data: ExpirySummary[] }
