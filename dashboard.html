@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options Flow — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #0f1117;
+  --bg2:       #151821;
+  --bg3:       #1c2030;
+  --border:    rgba(255,255,255,0.06);
+  --border2:   rgba(255,255,255,0.12);
+  --green:     #00c48c;
+  --red:       #ff4d6d;
+  --blue:      #4d9fff;
+  --yellow:    #f5c542;
+  --text:      #e8eaf0;
+  --muted:     #6b7280;
+  --muted2:    #9ca3af;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-head: 'Syne', sans-serif;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ══════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════ */
+.sidebar {
+  width: 200px;
+  min-width: 200px;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  gap: 4px;
+}
+
+.logo {
+  font-family: var(--font-head);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0 18px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+  color: var(--text);
+}
+.logo span { color: var(--blue); }
+
+.sidebar-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  padding: 12px 18px 6px;
+  text-transform: uppercase;
+}
+
+.stock-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  border: none;
+  background: none;
+  color: var(--muted2);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  width: 100%;
+  text-align: left;
+  border-left: 2px solid transparent;
+  transition: all 0.15s;
+}
+.stock-btn:hover { background: var(--bg3); color: var(--text); }
+.stock-btn.active {
+  background: rgba(77,159,255,0.08);
+  color: var(--blue);
+  border-left-color: var(--blue);
+}
+
+.stock-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: background 0.15s;
+}
+.stock-btn.active .stock-dot { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+.stock-btn:hover .stock-dot  { background: var(--text); }
+
+.stock-name { font-size: 11px; color: var(--muted); }
+
+.sidebar-date {
+  margin-top: auto;
+  padding: 16px 18px 0;
+  border-top: 1px solid var(--border);
+}
+.date-label { font-size: 10px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 8px; }
+.date-input {
+  width: 100%;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 7px 10px;
+  outline: none;
+  margin-bottom: 6px;
+}
+.date-input:focus { border-color: var(--blue); }
+
+/* ══════════════════════════════════════
+   MAIN
+══════════════════════════════════════ */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.ticker-block { display: flex; flex-direction: column; gap: 2px; min-width: 100px; }
+.ticker-symbol { font-family: var(--font-head); font-size: 22px; font-weight: 800; letter-spacing: 0.04em; }
+.ticker-name   { font-size: 11px; color: var(--muted); }
+
+.price-block { display: flex; flex-direction: column; gap: 2px; }
+.price-value { font-size: 26px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+.price-change { font-size: 12px; font-weight: 500; }
+.price-change.up   { color: var(--green); }
+.price-change.down { color: var(--red); }
+
+.divider { width: 1px; height: 40px; background: var(--border2); flex-shrink: 0; }
+
+.sentiment-cards { display: flex; gap: 10px; flex: 1; }
+
+.s-card {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.s-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  opacity: 0.06;
+}
+.s-card.green::before  { background: var(--green); }
+.s-card.red::before    { background: var(--red); }
+.s-card.yellow::before { background: var(--yellow); }
+.s-card.green  { border-color: rgba(0,196,140,0.3); }
+.s-card.red    { border-color: rgba(255,77,109,0.3); }
+.s-card.yellow { border-color: rgba(245,197,66,0.3); }
+
+.s-card-label  { font-size: 10px; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 5px; }
+.s-card-value  { font-family: var(--font-head); font-size: 14px; font-weight: 700; }
+.s-card.green  .s-card-value { color: var(--green); }
+.s-card.red    .s-card-value { color: var(--red); }
+.s-card.yellow .s-card-value { color: var(--yellow); }
+.s-card-sub    { font-size: 10px; color: var(--muted); margin-top: 3px; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 0;
+  padding: 0 24px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.tab-btn {
+  padding: 12px 18px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.tab-btn:hover  { color: var(--text); }
+.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ── Content ── */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 24px;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Grid layouts ── */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-1 { display: grid; grid-template-columns: 1fr; gap: 16px; margin-bottom: 16px; }
+
+/* ── Card ── */
+.card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 18px 20px;
+}
+.card-title {
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-title .badge {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--bg3);
+  color: var(--muted2);
+}
+
+/* ══════════════════════════════════════
+   SVG CHARTS
+══════════════════════════════════════ */
+.chart-wrap { width: 100%; position: relative; }
+svg text { font-family: var(--font-mono); }
+
+/* ── Heatmap ── */
+.heatmap-grid { overflow-x: auto; }
+.heatmap-table {
+  border-collapse: separate;
+  border-spacing: 3px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+.heatmap-table th {
+  color: var(--muted);
+  font-weight: 500;
+  padding: 4px 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+.heatmap-table td {
+  width: 56px;
+  height: 32px;
+  border-radius: 4px;
+  text-align: center;
+  vertical-align: middle;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+  position: relative;
+}
+.heatmap-table td:hover { filter: brightness(1.4); }
+.heatmap-table .row-label {
+  color: var(--muted);
+  text-align: right;
+  padding-right: 10px;
+  width: 40px;
+  font-weight: 500;
+}
+
+/* ── Unusual activity table ── */
+.alert-table { width: 100%; border-collapse: collapse; }
+.alert-table th {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 600;
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.alert-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+}
+.alert-table tr:last-child td { border-bottom: none; }
+.alert-table tr:hover td { background: var(--bg3); }
+
+.badge-type {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.badge-vol   { background: rgba(77,159,255,0.15); color: var(--blue); }
+.badge-oi    { background: rgba(245,197,66,0.15); color: var(--yellow); }
+.badge-iv    { background: rgba(0,196,140,0.15);  color: var(--green); }
+.badge-pc    { background: rgba(255,77,109,0.15); color: var(--red); }
+
+.tag-call { color: var(--green); font-weight: 600; }
+.tag-put  { color: var(--red);   font-weight: 600; }
+
+.num { font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ SIDEBAR ═══════════════ -->
+<aside class="sidebar">
+  <div class="logo">OPTIONS<span>.</span>FLOW</div>
+
+  <div class="sidebar-label">Watchlist</div>
+
+  <button class="stock-btn active" onclick="selectStock(this,'TIGR','UP Fintech','4.50','-1.31','down')">
+    <span class="stock-dot"></span>
+    <span>
+      <div style="font-weight:600">TIGR</div>
+      <div class="stock-name">UP Fintech</div>
+    </span>
+  </button>
+  <button class="stock-btn" onclick="selectStock(this,'NIO','NIO Inc','5.27','+3.74','up')">
+    <span class="stock-dot"></span>
+    <span>
+      <div style="font-weight:600">NIO</div>
+      <div class="stock-name">NIO Inc</div>
+    </span>
+  </button>
+  <button class="stock-btn" onclick="selectStock(this,'TSLA','Tesla Inc','285.40','+1.22','up')">
+    <span class="stock-dot"></span>
+    <span>
+      <div style="font-weight:600">TSLA</div>
+      <div class="stock-name">Tesla Inc</div>
+    </span>
+  </button>
+  <button class="stock-btn" onclick="selectStock(this,'FUTU','Futu Holdings','92.10','-0.88','down')">
+    <span class="stock-dot"></span>
+    <span>
+      <div style="font-weight:600">FUTU</div>
+      <div class="stock-name">Futu Holdings</div>
+    </span>
+  </button>
+  <button class="stock-btn" onclick="selectStock(this,'BYDDY','BYD Company','38.75','+2.10','up')">
+    <span class="stock-dot"></span>
+    <span>
+      <div style="font-weight:600">BYDDY</div>
+      <div class="stock-name">BYD Company</div>
+    </span>
+  </button>
+
+  <div class="sidebar-date">
+    <div class="date-label">Date Range</div>
+    <input class="date-input" type="date" value="2026-05-12">
+    <input class="date-input" type="date" value="2026-05-24">
+  </div>
+</aside>
+
+<!-- ═══════════════ MAIN ═══════════════ -->
+<div class="main">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="ticker-block">
+      <div class="ticker-symbol" id="hdr-symbol">TIGR</div>
+      <div class="ticker-name"  id="hdr-name">UP Fintech Holding</div>
+    </div>
+    <div class="price-block">
+      <div class="price-value" id="hdr-price">$4.50</div>
+      <div class="price-change down" id="hdr-change">▼ -1.31% today</div>
+    </div>
+    <div class="divider"></div>
+    <div class="sentiment-cards">
+      <div class="s-card red" id="card-pressure">
+        <div class="s-card-label">Pressure Sentiment</div>
+        <div class="s-card-value">极度空头压制</div>
+        <div class="s-card-sub">delta_pc = 11.97</div>
+      </div>
+      <div class="s-card green" id="card-flow">
+        <div class="s-card-label">Flow Sentiment</div>
+        <div class="s-card-value">强看多</div>
+        <div class="s-card-sub">otm_pc = 0.03</div>
+      </div>
+      <div class="s-card yellow" id="card-legacy">
+        <div class="s-card-label">Legacy Flag</div>
+        <div class="s-card-value">⚠ ITM Dominated</div>
+        <div class="s-card-sub">98.1% puts ITM</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('overview', this)">Overview</button>
+    <button class="tab-btn" onclick="switchTab('chain',    this)">Options Chain</button>
+    <button class="tab-btn" onclick="switchTab('expiry',   this)">Expiry Analysis</button>
+    <button class="tab-btn" onclick="switchTab('unusual',  this)">Unusual Activity</button>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- ══ TAB: OVERVIEW ══ -->
+    <div class="tab-panel active" id="tab-overview">
+      <div class="grid-2">
+
+        <div class="card">
+          <div class="card-title">P/C Ratio — Daily Volume <span class="badge">May 12–22</span></div>
+          <div class="chart-wrap">
+            <svg id="pc-chart" width="100%" height="200" viewBox="0 0 480 200"></svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">IV Skew — Call vs Put <span class="badge">Avg by Expiry</span></div>
+          <div class="chart-wrap">
+            <svg id="iv-chart" width="100%" height="200" viewBox="0 0 480 200"></svg>
+          </div>
+        </div>
+
+      </div>
+      <div class="grid-2">
+
+        <div class="card">
+          <div class="card-title">Daily Volume <span class="badge">Call / Put</span></div>
+          <div class="chart-wrap">
+            <svg id="vol-chart" width="100%" height="180" viewBox="0 0 480 180"></svg>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">OI Breakdown by Moneyness</div>
+          <div id="moneyness-bars"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ══ TAB: OPTIONS CHAIN ══ -->
+    <div class="tab-panel" id="tab-chain">
+      <div class="grid-1">
+        <div class="card">
+          <div class="card-title">Open Interest Heatmap — Strike × Expiry <span class="badge">Darker = Higher OI</span></div>
+          <div class="heatmap-grid">
+            <div id="heatmap-container"></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-1">
+        <div class="card">
+          <div class="card-title">OI by Strike — Call vs Put <span class="badge">Near-term (May 29)</span></div>
+          <div class="chart-wrap">
+            <svg id="butterfly-chart" width="100%" height="240" viewBox="0 0 800 240"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TAB: EXPIRY ANALYSIS ══ -->
+    <div class="tab-panel" id="tab-expiry">
+      <div class="grid-1">
+        <div class="card">
+          <div class="card-title">Call vs Put OI by Expiry <span class="badge">All Expirations</span></div>
+          <div class="chart-wrap">
+            <svg id="expiry-bar-chart" width="100%" height="260" viewBox="0 0 800 260"></svg>
+          </div>
+        </div>
+      </div>
+      <div class="grid-1">
+        <div class="card">
+          <div class="card-title">P/C OI Ratio by Expiry <span class="badge">Below 1 = Call Heavy</span></div>
+          <div class="chart-wrap">
+            <svg id="expiry-ratio-chart" width="100%" height="200" viewBox="0 0 800 200"></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TAB: UNUSUAL ACTIVITY ══ -->
+    <div class="tab-panel" id="tab-unusual">
+      <div class="card">
+        <div class="card-title">Unusual Options Activity <span class="badge">Auto-detected Alerts</span></div>
+        <table class="alert-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Side</th>
+              <th>Strike</th>
+              <th>Expiry</th>
+              <th>Value</th>
+              <th>Prev</th>
+              <th>Δ%</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="unusual-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<script>
+/* ═══════════════════════════════════════
+   DATA
+═══════════════════════════════════════ */
+const DATA = {
+  TIGR: {
+    price: '$4.50', change: '▼ -1.31%', dir: 'down', name: 'UP Fintech Holding',
+    pressure: { label:'极度空头压制', val:'delta_pc = 11.97', cls:'red' },
+    flow:     { label:'强看多',       val:'otm_pc = 0.03',    cls:'green' },
+    legacy:   { label:'⚠ ITM Dominated', val:'98.1% puts ITM', cls:'yellow' },
+    dailyPC: [
+      { d:'05/12', v:3.41  },{ d:'05/13', v:0.17  },{ d:'05/14', v:1.87  },
+      { d:'05/15', v:0.61  },{ d:'05/18', v:4.98  },{ d:'05/19', v:12.0  },
+      { d:'05/20', v:8.65  },{ d:'05/21', v:12.0  },{ d:'05/22', v:1.35  },
+    ],
+    dailyVol: [
+      { d:'05/12', c:2068,  p:7044  },{ d:'05/13', c:6752,  p:1167  },
+      { d:'05/14', c:1227,  p:2299  },{ d:'05/15', c:2679,  p:1632  },
+      { d:'05/18', c:2914,  p:14521 },{ d:'05/19', c:753,   p:12000 },
+      { d:'05/20', c:2227,  p:19253 },{ d:'05/21', c:959,   p:12000 },
+      { d:'05/22', c:19262, p:26029 },
+    ],
+    expiryOI: [
+      { exp:'May 29', call:3378,  put:72206 },
+      { exp:'Jun 05', call:2549,  put:34127 },
+      { exp:'Jun 12', call:2212,  put:3189  },
+      { exp:'Jun 18', call:21658, put:6364  },
+      { exp:'Jun 26', call:294,   put:3288  },
+      { exp:'Jul 17', call:29557, put:20982 },
+      { exp:'Oct 16', call:4165,  put:15544 },
+      { exp:'Jan 27', call:41093, put:21667 },
+    ],
+    ivData: [
+      { exp:'May 29', civ:140, piv:118 },
+      { exp:'Jun 05', civ:135, piv:114 },
+      { exp:'Jun 12', civ:128, piv:112 },
+      { exp:'Jun 18', civ:102, piv:94  },
+      { exp:'Jul 17', civ:105, piv:111 },
+      { exp:'Jan 27', civ:88,  piv:72  },
+    ],
+    strikes: [4.0,4.5,5.0,5.5,6.0,6.5,7.0,8.0,10.0],
+    heatmap: {
+      // [strike][expiry] = {call_oi, put_oi}
+      expiries: ['May 29','Jun 05','Jun 18','Jul 17','Jan 27'],
+      data: [
+        /* 4.0  */ [{c:0,p:16},    {c:0,p:0},    {c:0,p:0},    {c:9,p:27},   {c:239,p:1418} ],
+        /* 4.5  */ [{c:0,p:0},    {c:0,p:0},    {c:26,p:0},   {c:0,p:398},  {c:265,p:2303} ],
+        /* 5.0  */ [{c:1,p:26007},{c:0,p:19509},{c:526,p:4690},{c:421,p:0}, {c:1086,p:1985}],
+        /* 5.5  */ [{c:112,p:26274},{c:55,p:9012},{c:0,p:0},   {c:0,p:0},   {c:652,p:1641} ],
+        /* 6.0  */ [{c:348,p:17491},{c:85,p:4258},{c:414,p:1325},{c:262,p:13966},{c:0,p:0} ],
+        /* 6.5  */ [{c:947,p:2329},{c:1149,p:644},{c:0,p:0},   {c:2381,p:0},{c:0,p:0}     ],
+        /* 7.0  */ [{c:627,p:54}, {c:753,p:702}, {c:11814,p:320},{c:0,p:2727},{c:3411,p:8185}],
+        /* 8.0  */ [{c:643,p:0},  {c:12,p:0},    {c:5784,p:10},{c:6326,p:1180},{c:109,p:0}],
+        /* 10.0 */ [{c:45,p:0},   {c:30,p:0},    {c:1394,p:0}, {c:6660,p:1348},{c:6579,p:4225}],
+      ],
+    },
+    butterfly: [
+      { strike:5.0, call:1,     put:26007 },
+      { strike:5.5, call:112,   put:26274 },
+      { strike:6.0, call:348,   put:17491 },
+      { strike:6.5, call:947,   put:2329  },
+      { strike:7.0, call:627,   put:54    },
+      { strike:7.5, call:581,   put:26    },
+      { strike:8.0, call:643,   put:25    },
+      { strike:8.5, call:72,    put:25    },
+    ],
+    unusual: [
+      { date:'05/19', type:'pc_ratio_extreme', side:'put',  strike:5.0,  expiry:'May 29', val:12000, prev:760,  chg:1478, desc:'P/C vol ratio spike to 52x' },
+      { date:'05/21', type:'pc_ratio_extreme', side:'put',  strike:5.0,  expiry:'May 29', val:12000, prev:959,  chg:1151, desc:'Second extreme put spike 44x' },
+      { date:'05/22', type:'volume_spike',     side:'call', strike:5.0,  expiry:'May 29', val:3162,  prev:0,    chg:999,  desc:'Call volume surge at ATM' },
+      { date:'05/22', type:'volume_spike',     side:'put',  strike:5.5,  expiry:'May 29', val:5393,  prev:420,  chg:1184, desc:'High volume at max put OI strike' },
+      { date:'05/18', type:'oi_spike',         side:'put',  strike:5.5,  expiry:'May 29', val:26274, prev:14200,chg:85,   desc:'OI buildup at 5.50 put' },
+      { date:'05/20', type:'iv_spike',         side:'put',  strike:6.0,  expiry:'May 29', val:198,   prev:120,  chg:65,   desc:'IV surge to 198% at $6 put' },
+      { date:'05/15', type:'oi_spike',         side:'call', strike:7.0,  expiry:'Jun 18', val:11814, prev:8200, chg:44,   desc:'Jun 18 $7 call accumulation' },
+    ],
+  },
+  NIO: {
+    price: '$5.27', change: '▲ +3.74%', dir: 'up', name: 'NIO Inc',
+    pressure: { label:'空头施压',  val:'delta_pc = 1.42',   cls:'red' },
+    flow:     { label:'强看多',    val:'otm_pc = 0.07',     cls:'green' },
+    legacy:   { label:'✓ Normal', val:'OTM calls dominant', cls:'green' },
+    dailyPC: [
+      { d:'05/12', v:0.131 },{ d:'05/13', v:0.306 },{ d:'05/14', v:0.170 },
+      { d:'05/15', v:0.186 },{ d:'05/18', v:0.119 },{ d:'05/19', v:0.267 },
+      { d:'05/20', v:0.265 },{ d:'05/21', v:0.138 },{ d:'05/22', v:0.271 },
+    ],
+    dailyVol: [
+      { d:'05/12', c:8448,  p:1106  },{ d:'05/13', c:52052, p:15936 },
+      { d:'05/14', c:38349, p:6527  },{ d:'05/15', c:29657, p:5508  },
+      { d:'05/18', c:46389, p:5539  },{ d:'05/19', c:25323, p:6767  },
+      { d:'05/20', c:45617, p:12082 },{ d:'05/21', c:75074, p:10362 },
+      { d:'05/22', c:94079, p:25469 },
+    ],
+    expiryOI: [
+      { exp:'May 29', call:67219,  put:14224  },
+      { exp:'Jun 05', call:33875,  put:12524  },
+      { exp:'Jun 12', call:23282,  put:4260   },
+      { exp:'Jun 18', call:678559, put:397435 },
+      { exp:'Jun 26', call:8983,   put:2726   },
+      { exp:'Jul 17', call:9365,   put:3631   },
+      { exp:'Aug 21', call:137947, put:75043  },
+      { exp:'Jan 27', call:540325, put:590721 },
+    ],
+    ivData: [
+      { exp:'May 29', civ:160, piv:90  },
+      { exp:'Jun 05', civ:140, piv:95  },
+      { exp:'Jun 18', civ:117, piv:103 },
+      { exp:'Jul 17', civ:105, piv:98  },
+      { exp:'Aug 21', civ:98,  piv:92  },
+      { exp:'Jan 27', civ:88,  piv:78  },
+    ],
+    unusual: [
+      { date:'05/22', type:'volume_spike', side:'call', strike:5.0,  expiry:'Jun 18', val:28022, prev:4200, chg:567, desc:'Massive $5 Jun18 call accumulation' },
+      { date:'05/21', type:'volume_spike', side:'call', strike:7.0,  expiry:'Jan 27', val:20907, prev:6000, chg:248, desc:'$7 Jan27 call aggressive buying' },
+      { date:'05/22', type:'iv_spike',     side:'call', strike:5.0,  expiry:'Jun 18', val:62,    prev:45,   chg:38,  desc:'ATM call IV elevated' },
+      { date:'05/13', type:'volume_spike', side:'call', strike:7.0,  expiry:'Jun 18', val:10418, prev:1200, chg:768, desc:'Large block at $7 call' },
+      { date:'05/18', type:'oi_spike',     side:'call', strike:10.0, expiry:'Jun 18', val:98350, prev:60000,chg:64,  desc:'OI surge at $10 Jun 18 call' },
+    ],
+    butterfly: [
+      { strike:4.5,  call:5,      put:5    },
+      { strike:5.0,  call:844,    put:7411 },
+      { strike:5.5,  call:7411,   put:2100 },
+      { strike:6.0,  call:16521,  put:1200 },
+      { strike:6.5,  call:16954,  put:600  },
+      { strike:7.0,  call:10861,  put:300  },
+      { strike:7.5,  call:9394,   put:150  },
+      { strike:8.0,  call:2813,   put:80   },
+    ],
+    heatmap: {
+      expiries: ['May 29','Jun 05','Jun 18','Aug 21','Jan 27'],
+      data: [
+        [{c:844,p:0},    {c:0,p:0},    {c:97571,p:0},  {c:0,p:0},      {c:0,p:0}     ],
+        [{c:7411,p:0},   {c:0,p:0},    {c:0,p:0},      {c:0,p:0},      {c:0,p:0}     ],
+        [{c:16521,p:0},  {c:0,p:0},    {c:0,p:62553},  {c:0,p:0},      {c:0,p:197421}],
+        [{c:16954,p:0},  {c:0,p:0},    {c:0,p:0},      {c:0,p:0},      {c:0,p:0}     ],
+        [{c:10861,p:0},  {c:0,p:0},    {c:0,p:0},      {c:0,p:0},      {c:175012,p:0}],
+        [{c:9394,p:0},   {c:0,p:0},    {c:0,p:0},      {c:0,p:0},      {c:100614,p:0}],
+        [{c:2813,p:0},   {c:0,p:0},    {c:98350,p:0},  {c:137947,p:0}, {c:0,p:0}     ],
+        [{c:0,p:0},      {c:0,p:0},    {c:92311,p:0},  {c:0,p:0},      {c:0,p:0}     ],
+        [{c:362,p:0},    {c:0,p:0},    {c:0,p:0},      {c:0,p:0},      {c:0,p:0}     ],
+      ],
+    },
+    strikes: [5.0,5.5,6.0,6.5,7.0,8.0,10.0,12.0,15.0],
+  },
+};
+['TSLA','FUTU','BYDDY'].forEach(t => { DATA[t] = DATA.NIO; });
+
+/* ═══════════════════════════════════════
+   STATE
+═══════════════════════════════════════ */
+let current = 'TIGR';
+
+/* ═══════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════ */
+function fmt(n) {
+  if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+  if (n >= 1e3) return (n/1e3).toFixed(0)+'K';
+  return String(n);
+}
+
+function heatColor(val, max, side) {
+  const ratio = Math.min(val / max, 1);
+  if (side === 'call') {
+    const r = Math.round(0 + ratio * 0);
+    const g = Math.round(30 + ratio * 170);
+    const b = Math.round(30 + ratio * 100);
+    return `rgba(${r},${g},${b},${0.15 + ratio * 0.75})`;
+  } else {
+    const r = Math.round(50 + ratio * 200);
+    const g = Math.round(10 + ratio * 30);
+    const b = Math.round(30 + ratio * 50);
+    return `rgba(${r},${g},${b},${0.15 + ratio * 0.75})`;
+  }
+}
+
+/* ═══════════════════════════════════════
+   TAB SWITCH
+═══════════════════════════════════════ */
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ═══════════════════════════════════════
+   STOCK SELECT
+═══════════════════════════════════════ */
+function selectStock(btn, sym, name, price, change, dir) {
+  document.querySelectorAll('.stock-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  current = sym;
+
+  document.getElementById('hdr-symbol').textContent = sym;
+  document.getElementById('hdr-name').textContent = name;
+  document.getElementById('hdr-price').textContent = price;
+  const chgEl = document.getElementById('hdr-change');
+  chgEl.textContent = (dir==='up'?'▲ ':'▼ ') + change + '% today';
+  chgEl.className = 'price-change ' + dir;
+
+  const d = DATA[sym];
+  updateCard('card-pressure', d.pressure);
+  updateCard('card-flow',     d.flow);
+  updateCard('card-legacy',   d.legacy);
+
+  renderAll(sym);
+}
+
+function updateCard(id, cfg) {
+  const el = document.getElementById(id);
+  el.className = 's-card ' + cfg.cls;
+  el.querySelector('.s-card-value').textContent = cfg.label;
+  el.querySelector('.s-card-sub').textContent   = cfg.val;
+}
+
+/* ═══════════════════════════════════════
+   CHART: P/C LINE
+═══════════════════════════════════════ */
+function renderPCChart(sym) {
+  const pts = DATA[sym].dailyPC;
+  const svg = document.getElementById('pc-chart');
+  const W=480, H=200, pad={t:16,b:32,l:44,r:16};
+  const iW = W-pad.l-pad.r, iH = H-pad.t-pad.b;
+
+  const maxV = Math.min(Math.max(...pts.map(p=>p.v)) * 1.1, 12);
+  const xS = i => pad.l + i * iW/(pts.length-1);
+  const yS = v => pad.t + iH - Math.min(v,12)/maxV * iH;
+
+  let out = `<defs>
+    <linearGradient id="pcGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff4d6d" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#ff4d6d" stop-opacity="0"/>
+    </linearGradient>
+  </defs>`;
+
+  // Grid
+  [0,3,6,9,12].forEach(v => {
+    const y = yS(v);
+    out += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    out += `<text x="${pad.l-6}" y="${y+4}" fill="#6b7280" font-size="10" text-anchor="end">${v}</text>`;
+  });
+
+  // Neutral line
+  const y1 = yS(1);
+  out += `<line x1="${pad.l}" y1="${y1}" x2="${W-pad.r}" y2="${y1}" stroke="rgba(77,159,255,0.3)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  out += `<text x="${W-pad.r+4}" y="${y1+4}" fill="rgba(77,159,255,0.7)" font-size="9">pc=1</text>`;
+
+  // Area fill
+  const pathD = pts.map((p,i) => `${i===0?'M':'L'}${xS(i)},${yS(p.v)}`).join(' ');
+  const areaD = pathD + ` L${xS(pts.length-1)},${yS(0)} L${xS(0)},${yS(0)} Z`;
+  out += `<path d="${areaD}" fill="url(#pcGrad)"/>`;
+  out += `<path d="${pathD}" fill="none" stroke="#ff4d6d" stroke-width="2" stroke-linejoin="round"/>`;
+
+  // Dots + labels
+  pts.forEach((p,i) => {
+    const x=xS(i), y=yS(p.v);
+    const clr = p.v > 1 ? '#ff4d6d' : '#00c48c';
+    out += `<circle cx="${x}" cy="${y}" r="3" fill="${clr}" stroke="var(--bg2)" stroke-width="1.5"/>`;
+    out += `<text x="${x}" y="${H-4}" fill="#6b7280" font-size="9" text-anchor="middle">${p.d}</text>`;
+  });
+
+  svg.innerHTML = out;
+}
+
+/* ═══════════════════════════════════════
+   CHART: IV SKEW
+═══════════════════════════════════════ */
+function renderIVChart(sym) {
+  const pts = DATA[sym].ivData;
+  const svg = document.getElementById('iv-chart');
+  const W=480, H=200, pad={t:16,b:32,l:44,r:16};
+  const iW = W-pad.l-pad.r, iH = H-pad.t-pad.b;
+
+  const maxV = 200;
+  const xS = i => pad.l + i * iW/(pts.length-1);
+  const yS = v => pad.t + iH - v/maxV * iH;
+
+  let out = '';
+  [0,50,100,150,200].forEach(v => {
+    const y = yS(v);
+    out += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+    out += `<text x="${pad.l-6}" y="${y+4}" fill="#6b7280" font-size="10" text-anchor="end">${v}%</text>`;
+  });
+
+  // Call line
+  const callPath = pts.map((p,i) => `${i===0?'M':'L'}${xS(i)},${yS(p.civ)}`).join(' ');
+  out += `<path d="${callPath}" fill="none" stroke="#00c48c" stroke-width="2" stroke-linejoin="round"/>`;
+
+  // Put line
+  const putPath = pts.map((p,i) => `${i===0?'M':'L'}${xS(i)},${yS(p.piv)}`).join(' ');
+  out += `<path d="${putPath}" fill="none" stroke="#ff4d6d" stroke-width="2" stroke-linejoin="round" stroke-dasharray="5,3"/>`;
+
+  pts.forEach((p,i) => {
+    const x=xS(i);
+    out += `<circle cx="${x}" cy="${yS(p.civ)}" r="3" fill="#00c48c"/>`;
+    out += `<circle cx="${x}" cy="${yS(p.piv)}" r="3" fill="#ff4d6d"/>`;
+    out += `<text x="${x}" y="${H-4}" fill="#6b7280" font-size="9" text-anchor="middle">${p.exp}</text>`;
+  });
+
+  // Legend
+  out += `<rect x="${W-100}" y="8" width="8" height="8" fill="#00c48c" rx="2"/>
+          <text x="${W-88}" y="16" fill="#9ca3af" font-size="10">Call IV</text>
+          <rect x="${W-100}" y="24" width="8" height="8" fill="#ff4d6d" rx="2"/>
+          <text x="${W-88}" y="32" fill="#9ca3af" font-size="10">Put IV</text>`;
+
+  svg.innerHTML = out;
+}
+
+/* ═══════════════════════════════════════
+   CHART: VOLUME BARS
+═══════════════════════════════════════ */
+function renderVolChart(sym) {
+  const pts = DATA[sym].dailyVol;
+  const svg = document.getElementById('vol-chart');
+  const W=480, H=180, pad={t:10,b:28,l:50,r:16};
+  const iW = W-pad.l-pad.r, iH = H-pad.t-pad.b;
+
+  const maxV = Math.max(...pts.map(p=>p.c+p.p));
+  const bW = iW/pts.length * 0.7;
+  const gap = iW/pts.length;
+  const yS = v => iH - v/maxV * iH;
+
+  let out = '';
+  [0,0.25,0.5,0.75,1].forEach(f => {
+    const y = pad.t + f*iH;
+    out += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
+    out += `<text x="${pad.l-6}" y="${y+4}" fill="#6b7280" font-size="9" text-anchor="end">${fmt(maxV*(1-f))}</text>`;
+  });
+
+  pts.forEach((p, i) => {
+    const x = pad.l + i*gap + (gap-bW)/2;
+    const cH = yS(p.c); const pH = yS(p.p);
+    // stacked: call bottom, put on top
+    const totalH = yS(0) - yS(p.c+p.p);
+    const callH  = yS(0) - yS(p.c);
+    const putH   = yS(0) - yS(p.p);
+    const base   = pad.t + iH;
+    out += `<rect x="${x}" y="${base-callH}" width="${bW}" height="${callH}" fill="rgba(0,196,140,0.7)" rx="2"/>`;
+    out += `<rect x="${x}" y="${base-callH-putH}" width="${bW}" height="${putH}" fill="rgba(255,77,109,0.7)" rx="2"/>`;
+    out += `<text x="${x+bW/2}" y="${H-4}" fill="#6b7280" font-size="9" text-anchor="middle">${p.d.slice(3)}</text>`;
+  });
+
+  // Legend
+  out += `<rect x="${pad.l}" y="2" width="8" height="8" fill="rgba(0,196,140,0.7)" rx="1"/>
+          <text x="${pad.l+12}" y="10" fill="#9ca3af" font-size="9">Call</text>
+          <rect x="${pad.l+44}" y="2" width="8" height="8" fill="rgba(255,77,109,0.7)" rx="1"/>
+          <text x="${pad.l+56}" y="10" fill="#9ca3af" font-size="9">Put</text>`;
+
+  svg.innerHTML = out;
+}
+
+/* ═══════════════════════════════════════
+   MONEYNESS BARS
+═══════════════════════════════════════ */
+function renderMoneyness(sym) {
+  const el = document.getElementById('moneyness-bars');
+  const d = sym === 'TIGR' ? {
+    otm_put:3267, atm_put:65186, itm_put:110430,
+    otm_call:108611, atm_call:2212, itm_call:1344,
+  } : {
+    otm_put:8000, atm_put:25000, itm_put:120000,
+    otm_call:900000, atm_call:80000, itm_call:50000,
+  };
+
+  const totalPut = d.otm_put + d.atm_put + d.itm_put;
+  const totalCall = d.otm_call + d.atm_call + d.itm_call;
+
+  function bar(label, val, total, color) {
+    const pct = (val/total*100).toFixed(1);
+    return `<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-size:11px;color:var(--muted2)">${label}</span>
+        <span style="font-size:11px;color:var(--muted)">${fmt(val)} <span style="color:${color}">${pct}%</span></span>
+      </div>
+      <div style="background:var(--bg3);border-radius:3px;height:6px;overflow:hidden">
+        <div style="width:${pct}%;height:100%;background:${color};border-radius:3px;transition:width 0.4s ease"></div>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div style="margin-bottom:14px">
+      <div style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">PUTS</div>
+      ${bar('Deep/OTM Puts (new bearish bets)', d.otm_put, totalPut, '#ff4d6d')}
+      ${bar('ATM Puts (near money)',            d.atm_put, totalPut, '#f5c542')}
+      ${bar('ITM Puts (legacy positions)',       d.itm_put, totalPut, 'rgba(255,77,109,0.3)')}
+    </div>
+    <div>
+      <div style="font-size:10px;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px">CALLS</div>
+      ${bar('Deep/OTM Calls (new bullish bets)', d.otm_call, totalCall, '#00c48c')}
+      ${bar('ATM Calls (near money)',             d.atm_call, totalCall, '#4d9fff')}
+      ${bar('ITM Calls (already profitable)',     d.itm_call, totalCall, 'rgba(0,196,140,0.3)')}
+    </div>`;
+}
+
+/* ═══════════════════════════════════════
+   HEATMAP
+═══════════════════════════════════════ */
+function renderHeatmap(sym) {
+  const d = DATA[sym].heatmap;
+  const strikes = DATA[sym].strikes;
+
+  // find max OI for color scale
+  let maxOI = 1;
+  d.data.forEach(row => row.forEach(cell => {
+    maxOI = Math.max(maxOI, cell.c, cell.p);
+  }));
+
+  let html = `<table class="heatmap-table"><thead><tr>
+    <th style="text-align:right;padding-right:10px">Strike</th>`;
+  d.expiries.forEach(e => { html += `<th>${e}</th>`; });
+  html += `</tr></thead><tbody>`;
+
+  strikes.forEach((strike, si) => {
+    html += `<tr><td class="row-label">$${strike.toFixed(1)}</td>`;
+    d.data[si].forEach(cell => {
+      const hasCall = cell.c > 0;
+      const hasPut  = cell.p > 0;
+      const val  = hasCall ? cell.c : cell.p;
+      const side = hasCall ? 'call' : 'put';
+      const bg   = val > 0 ? heatColor(val, maxOI, side) : 'rgba(255,255,255,0.02)';
+      const txt  = val > 0 ? fmt(val) : '—';
+      const clr  = hasCall ? 'rgba(0,196,140,0.9)' : hasPut ? 'rgba(255,77,109,0.9)' : 'rgba(255,255,255,0.15)';
+      html += `<td style="background:${bg};color:${clr}" title="${hasCall?'Call':'Put'} OI: ${val}">${txt}</td>`;
+    });
+    html += `</tr>`;
+  });
+
+  html += `</tbody></table>
+    <div style="margin-top:12px;display:flex;gap:20px;font-size:10px;color:var(--muted)">
+      <span><span style="color:var(--green)">■</span> Call OI</span>
+      <span><span style="color:var(--red)">■</span> Put OI</span>
+      <span>Darker = Higher OI</span>
+    </div>`;
+
+  document.getElementById('heatmap-container').innerHTML = html;
+}
+
+/* ═══════════════════════════════════════
+   BUTTERFLY CHART
+═══════════════════════════════════════ */
+function renderButterfly(sym) {
+  const pts = DATA[sym].butterfly;
+  const svg = document.getElementById('butterfly-chart');
+  const W=800, H=240, pad={t:16,b:28,l:200,r:200};
+  const iW = W-pad.l-pad.r, iH = H-pad.t-pad.b;
+
+  const maxV = Math.max(...pts.map(p => Math.max(p.call, p.put)));
+  const rowH = iH / pts.length;
+  const bH = rowH * 0.65;
+
+  let out = '';
+  // Center line
+  out += `<line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${H-pad.b}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`;
+  out += `<line x1="${W-pad.r}" y1="${pad.t}" x2="${W-pad.r}" y2="${H-pad.b}" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>`;
+  // Mid
+  const mid = W/2;
+  out += `<line x1="${mid}" y1="${pad.t}" x2="${mid}" y2="${H-pad.b}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+
+  pts.forEach((p, i) => {
+    const y = pad.t + i*rowH + (rowH-bH)/2;
+    // Strike label center
+    out += `<text x="${mid}" y="${y+bH/2+4}" fill="var(--text)" font-size="11" font-weight="600" text-anchor="middle">$${p.strike}</text>`;
+    // Call bar (right)
+    const cW = p.call/maxV * (iW/2 - 30);
+    out += `<rect x="${mid+14}" y="${y}" width="${cW}" height="${bH}" fill="rgba(0,196,140,0.75)" rx="2"/>`;
+    out += `<text x="${mid+14+cW+5}" y="${y+bH/2+4}" fill="#00c48c" font-size="10">${fmt(p.call)}</text>`;
+    // Put bar (left)
+    const pW = p.put/maxV * (iW/2 - 30);
+    out += `<rect x="${mid-14-pW}" y="${y}" width="${pW}" height="${bH}" fill="rgba(255,77,109,0.75)" rx="2"/>`;
+    out += `<text x="${mid-14-pW-5}" y="${y+bH/2+4}" fill="#ff4d6d" font-size="10" text-anchor="end">${fmt(p.put)}</text>`;
+  });
+
+  // Headers
+  out += `<text x="${mid-80}" y="${H-4}" fill="#6b7280" font-size="10" text-anchor="middle">← Put OI</text>`;
+  out += `<text x="${mid+80}" y="${H-4}" fill="#6b7280" font-size="10" text-anchor="middle">Call OI →</text>`;
+
+  svg.innerHTML = out;
+}
+
+/* ═══════════════════════════════════════
+   EXPIRY CHARTS
+═══════════════════════════════════════ */
+function renderExpiryBar(sym) {
+  const pts = DATA[sym].expiryOI;
+  const svg = document.getElementById('expiry-bar-chart');
+  const W=800, H=260, pad={t:16,b:36,l:60,r:20};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+
+  const maxV = Math.max(...pts.map(p=>p.call+p.put));
+  const bW = iW/pts.length * 0.55;
+  const gap = iW/pts.length;
+  let out = '';
+
+  [0,0.25,0.5,0.75,1].forEach(f => {
+    const y = pad.t + f*iH;
+    out += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
+    out += `<text x="${pad.l-6}" y="${y+4}" fill="#6b7280" font-size="10" text-anchor="end">${fmt(maxV*(1-f))}</text>`;
+  });
+
+  pts.forEach((p,i) => {
+    const x = pad.l + i*gap + (gap-bW)/2;
+    const base = pad.t + iH;
+    const cH = p.call/maxV * iH;
+    const pH = p.put/maxV * iH;
+    // put on bottom, call on top
+    out += `<rect x="${x}" y="${base-pH}" width="${bW}" height="${pH}" fill="rgba(255,77,109,0.7)" rx="2"/>`;
+    out += `<rect x="${x}" y="${base-cH-pH}" width="${bW}" height="${cH}" fill="rgba(0,196,140,0.7)" rx="2"/>`;
+    out += `<text x="${x+bW/2}" y="${H-4}" fill="#9ca3af" font-size="10" text-anchor="middle">${p.exp}</text>`;
+  });
+
+  out += `<rect x="${pad.l}" y="2" width="8" height="8" fill="rgba(0,196,140,0.7)" rx="1"/>
+          <text x="${pad.l+12}" y="10" fill="#9ca3af" font-size="9">Call OI</text>
+          <rect x="${pad.l+56}" y="2" width="8" height="8" fill="rgba(255,77,109,0.7)" rx="1"/>
+          <text x="${pad.l+68}" y="10" fill="#9ca3af" font-size="9">Put OI</text>`;
+
+  svg.innerHTML = out;
+}
+
+function renderExpiryRatio(sym) {
+  const pts = DATA[sym].expiryOI;
+  const svg = document.getElementById('expiry-ratio-chart');
+  const W=800, H=200, pad={t:16,b:36,l:60,r:20};
+  const iW=W-pad.l-pad.r, iH=H-pad.t-pad.b;
+
+  const ratios = pts.map(p => ({ exp:p.exp, v: p.put/Math.max(p.call,1) }));
+  const maxV = Math.max(...ratios.map(r=>r.v), 3) * 1.1;
+  const xS = i => pad.l + i * iW/(pts.length-1);
+  const yS = v => pad.t + iH - Math.min(v,maxV)/maxV * iH;
+
+  let out = `<defs>
+    <linearGradient id="ratioGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4d9fff" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#4d9fff" stop-opacity="0"/>
+    </linearGradient></defs>`;
+
+  [0,1,2,3].forEach(v => {
+    const y = yS(v > maxV ? maxV : v);
+    out += `<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>`;
+    out += `<text x="${pad.l-6}" y="${y+4}" fill="#6b7280" font-size="10" text-anchor="end">${v.toFixed(1)}</text>`;
+  });
+
+  const y1 = yS(1);
+  out += `<line x1="${pad.l}" y1="${y1}" x2="${W-pad.r}" y2="${y1}" stroke="rgba(77,159,255,0.4)" stroke-width="1" stroke-dasharray="4,3"/>`;
+  out += `<text x="${W-pad.r+4}" y="${y1+4}" fill="rgba(77,159,255,0.6)" font-size="9">1.0</text>`;
+
+  const pathD = ratios.map((r,i) => `${i===0?'M':'L'}${xS(i)},${yS(r.v)}`).join(' ');
+  const areaD = pathD + ` L${xS(ratios.length-1)},${yS(0)} L${xS(0)},${yS(0)} Z`;
+  out += `<path d="${areaD}" fill="url(#ratioGrad)"/>`;
+  out += `<path d="${pathD}" fill="none" stroke="#4d9fff" stroke-width="2.5" stroke-linejoin="round"/>`;
+
+  ratios.forEach((r,i) => {
+    const x=xS(i), y=yS(r.v);
+    const clr = r.v < 1 ? '#00c48c' : r.v > 2 ? '#ff4d6d' : '#f5c542';
+    out += `<circle cx="${x}" cy="${y}" r="4" fill="${clr}" stroke="var(--bg2)" stroke-width="1.5"/>`;
+    out += `<text x="${x}" y="${y-8}" fill="${clr}" font-size="9" text-anchor="middle">${r.v.toFixed(2)}</text>`;
+    out += `<text x="${x}" y="${H-4}" fill="#9ca3af" font-size="10" text-anchor="middle">${r.exp}</text>`;
+  });
+
+  svg.innerHTML = out;
+}
+
+/* ═══════════════════════════════════════
+   UNUSUAL ACTIVITY TABLE
+═══════════════════════════════════════ */
+function renderUnusual(sym) {
+  const rows = DATA[sym].unusual || [];
+  const tbody = document.getElementById('unusual-tbody');
+
+  const typeMap = {
+    volume_spike:     ['VOLUME',  'badge-vol'],
+    oi_spike:         ['OI',      'badge-oi'],
+    iv_spike:         ['IV',      'badge-iv'],
+    pc_ratio_extreme: ['P/C',     'badge-pc'],
+  };
+
+  tbody.innerHTML = rows.map(r => {
+    const [tLabel, tCls] = typeMap[r.type] || ['OTHER','badge-vol'];
+    const chgClr = r.chg > 200 ? '#ff4d6d' : r.chg > 50 ? '#f5c542' : '#00c48c';
+    return `<tr>
+      <td class="num" style="color:var(--muted2)">${r.date}</td>
+      <td><span class="badge-type ${tCls}">${tLabel}</span></td>
+      <td class="${r.side==='call'?'tag-call':'tag-put'}">${r.side.toUpperCase()}</td>
+      <td class="num">$${r.strike.toFixed(1)}</td>
+      <td class="num" style="color:var(--muted2)">${r.expiry}</td>
+      <td class="num">${fmt(r.val)}</td>
+      <td class="num" style="color:var(--muted)">${fmt(r.prev)}</td>
+      <td class="num" style="color:${chgClr};font-weight:600">+${r.chg}%</td>
+      <td style="color:var(--muted2);max-width:200px">${r.desc}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════
+   RENDER ALL
+═══════════════════════════════════════ */
+function renderAll(sym) {
+  renderPCChart(sym);
+  renderIVChart(sym);
+  renderVolChart(sym);
+  renderMoneyness(sym);
+  renderHeatmap(sym);
+  renderButterfly(sym);
+  renderExpiryBar(sym);
+  renderExpiryRatio(sym);
+  renderUnusual(sym);
+}
+
+// Init
+renderAll('TIGR');
+</script>
+</body>
+</html>

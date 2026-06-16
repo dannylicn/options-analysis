@@ -1,0 +1,15 @@
+[Unit]
+Description=Options Analysis FastAPI
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=danny
+WorkingDirectory=/home/danny/options-analysis/backend
+EnvironmentFile=/home/danny/options-analysis/.env
+ExecStart=/home/danny/.pyenv/versions/options-data-venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
